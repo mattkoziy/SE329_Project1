@@ -43,6 +43,11 @@
 @property (nonatomic, assign) BOOL                                          faceDetected;
 
 
+//boolean flag to see if a face wasn't recognized
+@property (nonatomic, assign) BOOL                                          faceUnDetectedBool;
+
+
+
 
 @end
 
@@ -90,6 +95,8 @@
 {
     [super viewDidLoad];
     
+    _faceUnDetectedBool = NO;
+    
     //hide augmentation labels
     [self.collin setHidden:YES];
     [self.josh setHidden:YES];
@@ -127,6 +134,7 @@
 {
     [super viewDidAppear:animated];
     
+    _faceUnDetectedBool = NO;
     
     //hide augmentation labels
     [self.collin setHidden:YES];
@@ -147,7 +155,7 @@
         }
         else
         {
-            NSURL *clientTrackerURL = [[NSBundle mainBundle] URLForResource:@"faces" withExtension:@"wtc" subdirectory:@"Assets"];
+            NSURL *clientTrackerURL = [[NSBundle mainBundle] URLForResource:@"faces_database" withExtension:@"wtc" subdirectory:@"Assets"];
             self.clientTracker = [self.wikitudeSDK.trackerManager create2DClientTrackerFromURL:clientTrackerURL extendedTargets:nil andDelegate:self];
 
             _faceDetectionPlugin->setFlipFlag( [WTFaceDetectionPluginViewController flipFlagForDeviceOrientation:[[UIDevice currentDevice] orientation]] );
@@ -189,6 +197,7 @@
         [self.recognizedFaceRectangle setModelViewMatrix:modelViewMatrix];
         
     }
+    
 }
 
 - (void)setFaceAugmentationProjectionMatrix:(const float*)projectionMatrix
@@ -217,7 +226,10 @@
 		if ( _faceDetected )
 		{
             [self.recognizedFaceRectangle drawInContext:[self.renderer internalContext]];
+            
 		}
+        
+        
     };
 }
 
@@ -262,31 +274,25 @@
     _isTracking = YES;
     
     
-    if ([[recognizedTarget name]  isEqual: @"20160919_191803"]){ //matt
+    if ([[recognizedTarget name]  isEqual: @"image3"]){ //matt
         NSLog(@"Matt");
         [self.matt setHidden:NO];
     }
-    else if ([[recognizedTarget name]  isEqual: @"20160919_191751"]){ //josh
+    else if ([[recognizedTarget name]  isEqual: @"image2"]){ //josh
         NSLog(@"Josh");
         [self.josh setHidden:NO];
     }
-    else if ([[recognizedTarget name]  isEqual: @"20160919_191739"]){ //jordan
+    else if ([[recognizedTarget name]  isEqual: @"image1-2"]){ //jordan
         NSLog(@"Jordan");
         [self.jordan setHidden:NO];
     }
-    else if ([[recognizedTarget name]  isEqual: @"20160919_191851"]){ //collin
+    else if ([[recognizedTarget name]  isEqual: @"image1"]){ //collin
         NSLog(@"Collin");
         [self.collin setHidden:NO];
     }
     else {
-        
-        UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Face isn't Recognized!"
-                                                        message:@"You must add the face to the faces database file first."
-                                                       delegate:nil
-                                              cancelButtonTitle:@"OK"
-                                              otherButtonTitles:nil];
-        [alert show];
-        
+        NSLog(@"Undetected");
+        _faceUnDetectedBool = YES;
     }
 }
 
@@ -302,11 +308,30 @@
     NSLog(@"lost target '%@'", [lostTarget name]);
     _isTracking = NO;
     
+    //check to see if face wasn't detected
+    if(_faceUnDetectedBool == YES){
+        
+        UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Face isn't Recognized!"
+                                                    message:@"You must add the face to the faces database file first."
+                                                   delegate:nil
+                                          cancelButtonTitle:@"OK"
+                                          otherButtonTitles:nil];
+        [alert show];
+        
+        
+    }
+    
+    
     //hide augmentation labels
     [self.collin setHidden:YES];
     [self.josh setHidden:YES];
     [self.jordan setHidden:YES];
     [self.matt setHidden:YES];
+    
+    _faceUnDetectedBool = NO;
+    
+    
+  
 }
 
 
